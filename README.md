@@ -16,6 +16,13 @@ GitHub de Don Profesor (`donprofesor4-maker`).
 
 - HTTPS: `https://donprofesor4-maker.github.io/diagnostico-4to-primaria/`
 
+## Estado actual (conectado)
+
+- Web app Apps Script: "Misión Diagnóstico 4to" (deploy v2, acceso Cualquier usuario)
+- Hoja: "Diagnóstico Informática 4to" → pestaña `Respuestas`
+- `SCRIPT_URL` en `index.html` ya apunta al `/exec` (el flujo E2E está probado:
+  envío `text/plain` → doPost → fila en `Respuestas` → pantalla "¡Listo, gracias!")
+
 ## Cómo conectar la hoja de respuestas (Google Sheets)
 
 1. Abre [script.google.com](https://script.google.com), crea un proyecto nuevo y
@@ -39,7 +46,7 @@ GitHub de Don Profesor (`donprofesor4-maker`).
 ```python
 import pandas as pd
 
-SHEET_ID = "1ABC123..."  # ID de tu Google Sheet
+SHEET_ID = "1wwJlmFvbqBqhcpGmK5LAU2H8dJNTggrCzU43gY6LCEE"
 url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Respuestas"
 df = pd.read_csv(url)
 
