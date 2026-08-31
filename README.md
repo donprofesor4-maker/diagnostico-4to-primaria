@@ -9,7 +9,7 @@ GitHub de Don Profesor (`donprofesor4-maker`).
 
 | Archivo | Descripción |
 |---|---|
-| `index.html` | Quiz autónomo (vanilla JS, sin dependencias, confeti incluido 🎉) |
+| `index.html` | Quiz autónomo (vanilla JS, sin dependencias; opciones barajadas por intento para que la correcta no sea siempre "A") |
 | `apps-script.gs` | Código para Google Apps Script (guardar respuestas en una hoja) |
 
 ## Página viva

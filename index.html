@@ -249,6 +249,38 @@ var PREGUNTAS = [
 for (var i = 0; i < PREGUNTAS.length; i++){ PREGUNTAS[i].id = i + 1; }
 
 var LETRAS = ["a","b","c"];
+
+// ====== Opciones barajadas ======
+// Evita que los alumnos detecten el patrón "la respuesta siempre es A".
+// La mezcla se guarda en la partida (localStorage) para que al continuar una
+// misión a medio hacer las letras sigan coincidiendo con lo que se vio.
+var CORRECTAS = PREGUNTAS.map(function(p){ return p.o[0]; });
+
+function mezclarPreguntas(){
+  for (var i = 0; i < PREGUNTAS.length; i++){
+    var a = PREGUNTAS[i].o.slice();
+    for (var j = a.length - 1; j > 0; j--){
+      var k = Math.floor(Math.random() * (j + 1));
+      var tmp = a[j]; a[j] = a[k]; a[k] = tmp;
+    }
+    PREGUNTAS[i].o = a;
+    PREGUNTAS[i].c = LETRAS[a.indexOf(CORRECTAS[i])];
+  }
+}
+
+function capturarMezcla(){
+  return PREGUNTAS.map(function(p){ return p.o.slice(); });
+}
+
+function aplicarMezcla(mezcla){
+  for (var i = 0; i < PREGUNTAS.length && i < mezcla.length; i++){
+    if (mezcla[i] && mezcla[i].length === LETRAS.length){
+      PREGUNTAS[i].o = mezcla[i].slice();
+      PREGUNTAS[i].c = LETRAS[mezcla[i].indexOf(CORRECTAS[i])];
+    }
+  }
+}
+
 var estado = null;
 var ultimaPantalla = "intro";
 
@@ -346,7 +378,8 @@ document.getElementById("btnIniciar").addEventListener("click", function(){
   var grupo = texto("grupo");
   if (!nombre){ setStatus("statusIntro", "Primero escribe tu nombre, explorador ✍️", "bad"); return; }
   if (!grupo){ setStatus("statusIntro", "No olvides tu grupo (ej. 4°A)", "bad"); return; }
-  estado = { v:1, nombre:nombre, grupo:grupo, idx:0, respuestas:[] };
+  mezclarPreguntas();
+  estado = { v:1, nombre:nombre, grupo:grupo, idx:0, respuestas:[], mezcla: capturarMezcla() };
   guardar();
   pantalla("pregunta");
   renderPregunta(0);
@@ -535,7 +568,8 @@ document.getElementById("btnEnviar").addEventListener("click", function(){
 });
 
 document.getElementById("btnRepetir").addEventListener("click", function(){
-  estado = { v:1, nombre:estado.nombre, grupo:estado.grupo, idx:0, respuestas:[] };
+  mezclarPreguntas();
+  estado = { v:1, nombre:estado.nombre, grupo:estado.grupo, idx:0, respuestas:[], mezcla: capturarMezcla() };
   guardar();
   pantalla("pregunta");
   renderPregunta(0);
@@ -554,6 +588,7 @@ document.getElementById("btnCerrar").addEventListener("click", function(){
     if (has){
       if (confirm("¡Hola de nuevo " + previo.nombre + "! Tienes una misión sin terminar. ¿Quieres continuar?")){
         estado = previo;
+        if (estado.mezcla){ aplicarMezcla(estado.mezcla); }
         pantalla("pregunta");
         renderPregunta(Math.min(estado.idx, PREGUNTAS.length - 1));
       } else {
