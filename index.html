@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DonBOT · Misión Diagnóstico 4º</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700;800&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rosa:#ff7ac2; --lila:#a78bfa; --azul:#60a5fa; --verde:#34d399;
+    --amarillo:#fcd34d; --naranja:#fb923c; --tinta:#2b2350;
+    --fondo:#fef3ff; --blanco:#fff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Baloo 2', system-ui, sans-serif;
+    background:linear-gradient(160deg,#fff0f6 0%,#f3e8ff 45%,#e0f2fe 100%);
+    min-height:100vh; color:var(--tinta);
+    overflow-x:hidden;
+  }
+  .cielo{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .cielo span{
+    position:absolute; display:block; border-radius:50%;
+    animation:flota 12s ease-in-out infinite;
+  }
+  @keyframes flota{
+    0%,100%{transform:translateY(0) rotate(0deg);}
+    50%{transform:translateY(-22px) rotate(8deg);}
+  }
+  .wrap{position:relative; z-index:1; max-width:760px; margin:0 auto; padding:20px 16px 80px;}
+
+  .pantalla{display:none; animation:aparece .4s ease;}
+  .pantalla.activa{display:block;}
+  @keyframes aparece{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+
+  .mascota{
+    font-size:74px; text-align:center; line-height:1.1; margin:6px 0 4px;
+    filter:drop-shadow(0 8px 14px rgba(167,139,250,.45));
+    animation:botcito 3s ease-in-out infinite;
+  }
+  @keyframes botcito{
+    0%,100%{transform:translateY(0) rotate(-3deg);}
+    50%{transform:translateY(-10px) rotate(3deg);}
+  }
+  .card{
+    background:rgba(255,255,255,.92);
+    border-radius:28px; padding:28px 24px;
+    box-shadow:0 18px 50px rgba(91,62,160,.16);
+    border:3px solid var(--blanco);
+    backdrop-filter:blur(4px);
+  }
+  h1{
+    font-weight:800; font-size:clamp(28px,6vw,44px); line-height:1.05;
+    background:linear-gradient(90deg,#e11d8f,#8b5cf6 55%,#2563eb);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-align:center;
+  }
+  .sub{text-align:center; font-size:17px; color:#6b5d9e; margin-top:6px; font-weight:600;}
+  .sub b{background:#ffe4f1; padding:1px 8px; border-radius:10px; color:#d61f8c;}
+
+  .campo{margin-top:20px;}
+  .campo label{font-weight:700; font-size:16px; display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .campo input{
+    width:100%; padding:15px 18px; font-family:inherit; font-size:19px; font-weight:600;
+    border:3px solid #e6dcff; border-radius:18px; outline:none; background:#fbf7ff;
+    transition:border .2s;
+  }
+  .campo input:focus{border-color:var(--lila); background:#fff;}
+
+  .btn{
+    display:block; width:100%; margin-top:22px; padding:17px;
+    font-family:inherit; font-size:21px; font-weight:800; color:#fff; cursor:pointer;
+    border:none; border-radius:22px;
+    background:linear-gradient(90deg,#f472b6,#8b5cf6,#60a5fa);
+    box-shadow:0 10px 24px rgba(139,92,246,.4);
+    transition:transform .12s, box-shadow .12s;
+    letter-spacing:.3px;
+  }
+  .btn:hover{transform:translateY(-2px) scale(1.01); box-shadow:0 14px 30px rgba(139,92,246,.5);}
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{filter:grayscale(.5) opacity(.6); cursor:not-allowed; transform:none;}
+
+  .barra{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .pista{flex:1; height:16px; background:#e9dcff; border-radius:99px; overflow:hidden;}
+  .relleno{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--amarillo),var(--naranja),var(--rosa));
+    border-radius:99px; transition:width .4s ease;
+  }
+  .cuenta{font-weight:800; font-size:15px; color:#8b5cf6; white-space:nowrap;}
+  .emojiQ{font-size:52px; text-align:center; margin-bottom:8px;}
+  .pregunta{font-size:clamp(19px,4.4vw,24px); font-weight:700; text-align:center; line-height:1.3; margin-bottom:20px;}
+
+  .opciones{display:flex; flex-direction:column; gap:12px;}
+  .opcion{display:flex; gap:14px; align-items:flex-start; cursor:pointer; transition:transform .1s, border-color .15s, background .15s;}
+  .opcion:hover{transform:translateX(4px);}
+  .opcion input{position:absolute; opacity:0; pointer-events:none;}
+  .opcion .letra{
+    flex:0 0 42px; height:42px; border-radius:14px; display:grid; place-items:center;
+    font-weight:800; font-size:19px; color:#8b5cf6; background:#f3e8ff;
+    border:3px solid #e6dcff; transition:.15s;
+  }
+  .opcion .texto{
+    flex:1; padding:10px 14px; border-radius:16px; font-size:17.5px; font-weight:600;
+    background:#fbf7ff; border:3px solid #e6dcff; transition:.15s; line-height:1.3;
+  }
+  .opcion input:checked + .letra{background:var(--vtt,#8b5cf6); color:#fff; border-color:var(--vtt,#8b5cf6);}
+  .opcion input:checked ~ .texto{background:var(--vbg,#f3e8ff); border-color:var(--vtt,#8b5cf6); color:#5b2ea6;}
+
+  .mini{display:none;}
+
+  .resultado .marca{font-size:96px; text-align:center; animation:zoom .5s cubic-bezier(.5,1.5,.5,1);}
+  @keyframes zoom{from{transform:scale(0);} to{transform:scale(1);}}
+  .estrellas{text-align:center; font-size:40px; letter-spacing:6px; margin:4px 0 2px;}
+  .nota{text-align:center; font-weight:800; font-size:30px; color:#8b5cf6;}
+  .detalle{text-align:center; font-size:16.5px; color:#6b5d9e; margin-top:4px; font-weight:600;}
+  .mensaje{text-align:center; font-size:18px; font-weight:600; color:#5b2ea6; margin-top:10px; line-height:1.45;}
+  .fila{display:flex; gap:10px; margin-top:20px;}
+  .fila .btn{font-size:17px; padding:14px 10px; margin-top:0;}
+  .btn.secundario{background:#fff; color:#8b5cf6; border:3px solid #e6dcff; box-shadow:none;}
+  .btn.secundario:hover{background:#faf5ff; box-shadow:none;}
+
+  .status{
+    display:none; margin-top:16px; padding:14px 16px; border-radius:16px;
+    font-weight:700; font-size:16px; text-align:center;
+  }
+  .status.show{display:block;}
+  .status.ok{background:#d1fae5; color:#047857; border:3px solid #6ee7b7;}
+  .status.bad{background:#ffe4e6; color:#be123c; border:3px solid #fda4af;}
+
+  .pie{text-align:center; margin-top:22px; font-size:13.5px; color:#b7a7e8; font-weight:600;}
+  .nota-seguridad{background:#fffbeb; border:3px dashed #fcd34d; padding:14px 16px; border-radius:16px; font-size:15px; font-weight:600; color:#92400e; margin-top:16px; text-align:center;}
+
+  #confeti{position:fixed; inset:0; pointer-events:none; z-index:5;}
+</style>
+</head>
+<body>
+
+<div class="cielo" id="cielo"></div>
+<canvas id="confeti"></canvas>
+
+<div class="wrap">
+
+  <!-- ====== INTRO ====== -->
+  <div class="pantalla activa" id="intro">
+    <div class="mascota">🤖</div>
+    <h1>¡Misión Diagnóstico!</h1>
+    <p class="sub">Soy <b>DonBOT</b>, tu guía robot. Responde <b>20 preguntas</b> de computación y gana estrellas ⭐</p>
+    <div class="card">
+      <div class="campo">
+        <label for="nombre">🧒 ¿Cómo te llamas?</label>
+        <input id="nombre" type="text" placeholder="Escribe tu nombre" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label for="grupo">🚩 Tu grupo</label>
+        <input id="grupo" type="text" placeholder="Ej. 4°A" autocomplete="off">
+      </div>
+      <button class="btn" id="btnIniciar">¡Comenzar la misión! 🚀</button>
+      <div class="status" id="statusIntro"></div>
+      <div class="nota-seguridad">🔒 <b>Recuerda:</b> nunca escribas datos personales como tu dirección o teléfono. Solo tu nombre y grupo, ¡como te pidió la profe!</div>
+    </div>
+    <p class="pie">Colegio de Cervantes · Informática · 4.º de primaria</p>
+  </div>
+
+  <!-- ====== PREGUNTA ====== -->
+  <div class="pantalla" id="pregunta">
+    <div class="card">
+      <div class="barra">
+        <span class="cuenta" id="cuenta"></span>
+        <div class="pista"><div class="relleno" id="relleno"></div></div>
+      </div>
+      <div class="emojiQ" id="emojiQ"></div>
+      <div class="pregunta" id="preguntaTxt"></div>
+      <div class="opciones" id="opciones"></div>
+      <button class="btn" id="btnSiguiente">Siguiente ➡️</button>
+    </div>
+  </div>
+
+  <!-- ====== RESULTADO ====== -->
+  <div class="pantalla resultado" id="resultado">
+    <div class="card">
+      <div class="marca" id="marca"></div>
+      <div class="estrellas" id="estrellas"></div>
+      <div class="nota" id="nota"></div>
+      <div class="detalle" id="detalle"></div>
+      <div class="mensaje" id="mensaje"></div>
+      <button class="btn" id="btnEnviar">📤 Enviar mis respuestas a la profe</button>
+      <div class="fila">
+        <button class="btn secundario" id="btnRespaldo">💾 Descargar respaldo</button>
+        <button class="btn secundario" id="btnRepetir">🔄 Reintentar</button>
+      </div>
+      <div class="status" id="statusEnvio"></div>
+    </div>
+    <p class="pie">Colegio de Cervantes · Informática · 4.º de primaria</p>
+  </div>
+
+  <!-- ====== LISTO ====== -->
+  <div class="pantalla" id="listo">
+    <div class="card" style="text-align:center;">
+      <div class="marca">🎉</div>
+      <h1 style="font-size:34px;">¡Listo, gracias!</h1>
+      <p class="sub" style="margin-top:10px;">Tus respuestas se guardaron. ¡Terminaste la misión, superhéroe del teclado! 🦸</p>
+      <button class="btn" id="btnCerrar">Cerrar esta página</button>
+    </div>
+  </div>
+
+  <div class="mini" id="respuesta"></div>
+</div>
+
+<script>
+// ====== CONFIGURACIÓN ======
+// Pega aquí la URL de tu Google Apps Script (termina en /exec) para que las
+// respuestas lleguen a una hoja de cálculo. Vacía = el alumno descarga respaldo.
+var SCRIPT_URL = "";
+
+// Orden de campos para Apps Script (debe coincidir con los encabezados).
+var CAMPOS = ["timestamp","nombre","grupo","r1","r2","r3","r4","r5","r6","r7","r8","r9","r10",
+  "r11","r12","r13","r14","r15","r16","r17","r18","r19","r20","aciertos"];
+
+// ====== PREGUNTAS (opciones: a, b, c — correcta va al final) ======
+var PREGUNTAS = [
+  {e:"🎭", q:"¿Qué es una tradición?", o:["Una práctica transmitida en una comunidad","Una contraseña","Un archivo temporal"], c:"a"},
+  {e:"🔎", q:"Para buscar información conviene usar…", o:["Palabras clave","Letras al azar","Solo emojis"], c:"a"},
+  {e:"📚", q:"Una fuente confiable presenta…", o:["Autor o institución identificable","Solo anuncios","Información sin origen"], c:"a"},
+  {e:"🎙️", q:"¿Qué permite hacer Audacity?", o:["Grabar y editar audio","Crear circuitos","Medir temperatura"], c:"a"},
+  {e:"🎧", q:"¿Qué es un pódcast?", o:["Contenido de audio organizado en episodios","Una hoja de cálculo","Una contraseña"], c:"a"},
+  {e:"📽️", q:"En una presentación, el título debe…", o:["Indicar el tema","Estar oculto","Ser ilegible"], c:"a"},
+  {e:"📊", q:"¿Qué herramienta organiza datos en filas y columnas?", o:["Hoja de cálculo","Grabadora","Navegador"], c:"a"},
+  {e:"🔲", q:"Una celda de Excel es…", o:["La unión de una fila y una columna","Un sonido","Una carpeta"], c:"a"},
+  {e:"➕", q:"¿Qué fórmula suma valores en Excel?", o:["SUMA","DIBUJO","AUDIO"], c:"a"},
+  {e:"⚖️", q:"Una tabla de comparación permite…", o:["Observar semejanzas y diferencias","Grabar voz","Crear contraseñas"], c:"a"},
+  {e:"🍳", q:"Una receta incluye…", o:["Ingredientes y pasos","Solo imágenes","Contraseñas"], c:"a"},
+  {e:"✨", q:"¿Qué debe tener una presentación clara?", o:["Poco texto y apoyos visuales","Mucho texto diminuto","Colores ilegibles"], c:"a"},
+  {e:"📈", q:"¿Para qué sirve una gráfica?", o:["Representar datos visualmente","Guardar audios","Escribir contraseñas"], c:"a"},
+  {e:"🥗", q:"Una alimentación saludable incluye…", o:["Variedad y equilibrio","Solo dulces","No beber agua"], c:"a"},
+  {e:"🤖", q:"¿Qué es inteligencia artificial?", o:["Tecnología que realiza tareas con datos y modelos","Una carpeta","Una bocina"], c:"a"},
+  {e:"🛡️", q:"Al usar IA debemos…", o:["Revisar la información","Creer todo sin verificar","Dar datos personales"], c:"a"},
+  {e:"💧", q:"¿Qué dato sirve para comparar consumo de agua?", o:["Cantidad registrada","Color de la computadora","Nombre del archivo"], c:"a"},
+  {e:"🧭", q:"¿Qué acción mejora una búsqueda?", o:["Hacer una pregunta específica","Escribir cualquier cosa","Abrir todos los anuncios"], c:"a"},
+  {e:"©️", q:"Al usar información ajena debemos…", o:["Mencionar la fuente","Copiar sin revisar","Borrar al autor"], c:"a"},
+  {e:"✅", q:"Antes de entregar un trabajo digital debemos…", o:["Revisarlo y guardarlo","Cerrarlo sin guardar","Cambiar la contraseña de otro"], c:"a"}
+];
+
+for (var i = 0; i < PREGUNTAS.length; i++){ PREGUNTAS[i].id = i + 1; }
+
+var LETRAS = ["a","b","c"];
+var estado = null;
+var ultimaPantalla = "intro";
+
+function pantalla(id){
+  var ps = document.querySelectorAll(".pantalla");
+  for (var i = 0; i < ps.length; i++){ ps[i].classList.remove("activa"); }
+  document.getElementById(id).classList.add("activa");
+  ultimaPantalla = id;
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function texto(id){ var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function setStatus(id, msg, kind){
+  var s = document.getElementById(id);
+  s.textContent = msg;
+  s.className = "status show " + (kind || "");
+}
+
+// ====== Estrellas decorativas en el fondo ======
+(function(){
+  var cielo = document.getElementById("cielo");
+  var emo = ["⭐","✨","🌟","🪐","🚀","🛸"];
+  for (var i = 0; i < 18; i++){
+    var sp = document.createElement("span");
+    sp.textContent = emo[Math.floor(Math.random() * emo.length)];
+    sp.style.left = Math.random() * 96 + "%";
+    sp.style.top = Math.random() * 96 + "%";
+    sp.style.fontSize = (14 + Math.random() * 22) + "px";
+    sp.style.opacity = 0.45;
+    sp.style.animationDelay = (Math.random() * 8) + "s";
+    cielo.appendChild(sp);
+  }
+})();
+
+// ====== Fondo de pregunta ======
+var colores = [
+  ["#f472b6","#ffe4f1"],
+  ["#a78bfa","#f3e8ff"],
+  ["#60a5fa","#e0f2fe"],
+  ["#34d399","#d1fae5"],
+  ["#fb923c","#ffedd5"]
+];
+
+function renderPregunta(idx){
+  var p = PREGUNTAS[idx];
+  var mate = colores[idx % colores.length];
+  var css = "opcion{--vtt:" + mate[0] + ";--vbg:" + mate[1] + ";}";
+  var st = document.getElementById("estiloOpciones");
+  if (!st){ st = document.createElement("style"); st.id = "estiloOpciones"; document.head.appendChild(st); }
+  st.textContent = css;
+
+  document.getElementById("emojiQ").textContent = p.e;
+  document.getElementById("preguntaTxt").textContent = (idx + 1) + ". " + p.q;
+  document.getElementById("cuenta").textContent = "Pregunta " + (idx + 1) + "/" + PREGUNTAS.length;
+  document.getElementById("relleno").style.width = ((idx + 1) / PREGUNTAS.length * 100) + "%";
+
+  var caja = document.getElementById("opciones");
+  caja.innerHTML = "";
+  var eleccion = estado.respuestas[idx] || "";
+  for (var i = 0; i < p.o.length; i++){
+    var letra = LETRAS[i];
+    var div = document.createElement("label");
+    div.className = "opcion";
+    div.innerHTML = '<input type="radio" name="q' + p.id + '" value="' + letra + '"' + (eleccion === letra ? ' checked' : '') + '>' +
+      '<div class="letra">' + letra.toUpperCase() + '</div>' +
+      '<div class="texto">' + p.o[i] + "</div>";
+    caja.appendChild(div);
+  }
+  var inputs = caja.querySelectorAll("input");
+  for (var i = 0; i < inputs.length; i++){
+    inputs[i].addEventListener("change", function(){
+      estado.respuestas[estado.idx] = this.value;
+      guardar();
+    });
+  }
+  document.getElementById("btnSiguiente").textContent = (idx + 1 === PREGUNTAS.length) ? "Ver mi resultado 🏆" : "Siguiente ➡️";
+}
+
+// ====== Persistencia ======
+var CLAVE_STATE = "donbot_diag_4to";
+function guardar(){
+  try { localStorage.setItem(CLAVE_STATE, JSON.stringify(estado)); } catch(e){}
+}
+function cargar(){
+  try {
+    var datos = JSON.parse(localStorage.getItem(CLAVE_STATE));
+    if (datos && datos.v === 1){ return datos; }
+  } catch(e){}
+  return null;
+}
+
+// ====== Flujo ======
+document.getElementById("btnIniciar").addEventListener("click", function(){
+  var nombre = texto("nombre");
+  var grupo = texto("grupo");
+  if (!nombre){ setStatus("statusIntro", "Primero escribe tu nombre, explorador ✍️", "bad"); return; }
+  if (!grupo){ setStatus("statusIntro", "No olvides tu grupo (ej. 4°A)", "bad"); return; }
+  estado = { v:1, nombre:nombre, grupo:grupo, idx:0, respuestas:[] };
+  guardar();
+  pantalla("pregunta");
+  renderPregunta(0);
+});
+
+document.getElementById("btnSiguiente").addEventListener("click", function(){
+  if (!estado) return;
+  if (!estado.respuestas[estado.idx]){
+    document.getElementById("btnSiguiente").textContent = "Elige una respuesta primero 👆";
+    return;
+  }
+  estado.idx++;
+  if (estado.idx >= PREGUNTAS.length){
+    mostrarResultado();
+  } else {
+    renderPregunta(estado.idx);
+  }
+});
+
+function calcularAciertos(){
+  var aciertos = 0;
+  for (var i = 0; i < PREGUNTAS.length; i++){
+    if (estado.respuestas[i] === PREGUNTAS[i].c){ aciertos++; }
+  }
+  return aciertos;
+}
+
+function mostrarResultado(){
+  var aciertos = calcularAciertos();
+  var pct = aciertos / PREGUNTAS.length;
+  var marca, nota, mensaje, estrellas = "";
+  var tipo = "🙂";
+  if (pct >= 0.9){ marca = "🏆"; nota = "¡Súper campeón!"; tipo = "🤩"; }
+  else if (pct >= 0.7){ marca = "🎖️"; nota = "¡Muy bien!"; tipo = "😃"; }
+  else if (pct >= 0.5){ marca = "🌟"; nota = "¡Bien hecho!"; tipo = "🙂"; }
+  else { marca = "💪"; nota = "¡Sigue intentando!"; tipo = "🤗"; }
+
+  var n = Math.round(aciertos / PREGUNTAS.length * 5);
+  for (var i = 0; i < 5; i++){ estrellas += (i < n) ? "⭐" : "☆"; }
+
+  var msjs = [
+    "Cada error es un paso del camino. ¡Practica y la próxima vuelas! 🚀",
+    "Ya sabes mucho. Repasa las partes difíciles y lo lograrás.",
+    "Vas por buen camino, ¡sigue así! 📚",
+    "¡Eres muy bueno en esto de la computación!",
+    "¡Increíble! Tienes el cerebro de un verdadero robot. 🤖❤️"
+  ];
+  var nivel = Math.max(0, Math.min(4, Math.floor(pct * 5)));
+  mensaje = msjs[nivel];
+
+  var nEst = (n >= 4) ? "★★★★★" : (n >= 3 ? "★★★★☆" : (n >= 2 ? "★★★☆☆" : (n >= 1 ? "★★☆☆☆" : "★☆☆☆☆")));
+
+  // confeti para buenos resultados
+  if (pct >= 0.5){ lanzarConfeti(pct); }
+
+  document.getElementById("marca").textContent = marca;
+  document.getElementById("nota").textContent = nota + "  " + tipo;
+  document.getElementById("detalle").textContent = "Aciertos: " + aciertos + " de " + PREGUNTAS.length + "  ·  " + Math.round(pct * 100) + "%";
+  document.getElementById("estrellas").textContent = estrellas;
+  document.getElementById("mensaje").textContent = mensaje;
+  if (aciertos >= PREGUNTAS.length){ document.getElementById("mensaje").textContent = msjs[4] + " ¡20 de 20, perfecto!"; }
+  document.getElementById("statusEnvio").className = "status";
+
+  pantalla("resultado");
+  guardar();
+  setTimeout(function(){ despuesMarca(); }, 300);
+}
+
+var marcasTexto = ["💖","🌈","🎠","🦄","🍭","🎈","✨","🐥","🫧","🎡","🍬","🎀"];
+function despuesMarca(){
+  var marca = document.getElementById("marca");
+  var max = 8, n = 0;
+  var iv = setInterval(function(){
+    marca.textContent = marcasTexto[Math.floor(Math.random() * marcasTexto.length)];
+    if (++n >= max){ clearInterval(iv); }
+  }, 220);
+}
+
+// ====== Confeti (canvas, sin librerías) ======
+var confetiCtx = null, confetiFn, piezasI = null;
+function lanzarConfeti(porciento){
+  var cv = document.getElementById("confeti");
+  confetiCtx = cv.getContext("2d");
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  if (confetiFn){ cancelAnimationFrame(confetiFn); }
+  var max = Math.round(90 + porciento * 130);
+  var colores = ["#f472b6","#a78bfa","#60a5fa","#34d399","#fcd34d","#fb923c","#f43f5e"];
+  var pcs = [];
+  for (var i = 0; i < max; i++){
+    pcs.push({
+      x: Math.random() * cv.width,
+      y: -20 - Math.random() * cv.height * 0.4,
+      w: 6 + Math.random() * 8,
+      h: 8 + Math.random() * 10,
+      c: colores[Math.floor(Math.random() * colores.length)],
+      vy: 2 + Math.random() * 4,
+      vx: -1.2 + Math.random() * 2.4,
+      r: Math.random() * Math.PI,
+      vr: -0.15 + Math.random() * 0.3,
+      s: Math.random() * 1.6 + 0.6
+    });
+  }
+  var rotado = "X";
+  function paso(){
+    confetiCtx.clearRect(0, 0, cv.width, cv.height);
+    var vivo = false;
+    for (var i = 0; i < pcs.length; i++){
+      var p = pcs[i];
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      if (p.y < cv.height + 30 && p.y > -40){
+        vivo = true;
+        confetiCtx.save();
+        confetiCtx.translate(p.x, p.y);
+        confetiCtx.rotate(p.r);
+        confetiCtx.scale(p.s, p.s);
+        confetiCtx.fillStyle = p.c;
+        confetiCtx.fillRect(-p.w / 2 * ((rotado === "Y") ? (Math.sin(p.y * 0.04)) : 1), -p.h / 2, p.w, p.h);
+        confetiCtx.restore();
+      }
+    }
+    if (pcs.length > 120){ rotado = "Y"; }
+    if (vivo && pcs.some(function(p){ return p.y < cv.height; })){
+      confetiFn = requestAnimationFrame(paso);
+    } else {
+      confetiCtx.clearRect(0, 0, cv.width, cv.height);
+    }
+  }
+  paso();
+}
+
+// ====== Recolectar y enviar ======
+function datosFinales(){
+  var datos = { timestamp: new Date().toISOString() };
+  for (var i = 0; i < CAMPOS.length; i++){
+    var k = CAMPOS[i];
+    if (k === "timestamp") continue;
+    if (k === "nombre"){ datos[k] = estado.nombre; }
+    else if (k === "grupo"){ datos[k] = estado.grupo; }
+    else if (k === "aciertos"){ datos[k] = calcularAciertos(); }
+    else { datos[k] = estado.respuestas[parseInt(k.slice(1), 10) - 1] || ""; }
+  }
+  return datos;
+}
+
+function descargar(datos){
+  var orden = {};
+  for (var i = 0; i < CAMPOS.length; i++){ orden[CAMPOS[i]] = datos[CAMPOS[i]] || ""; }
+  var blob = new Blob([JSON.stringify(orden, null, 2)], {type:"application/json"});
+  var a = document.createElement("a");
+  var nom = (datos.nombre || "alumno").replace(/[^a-z0-9áéíóúñ ]/gi, "").replace(/\s+/g, "_");
+  a.href = URL.createObjectURL(blob);
+  a.download = "diagnostico_" + nom + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+document.getElementById("btnRespaldo").addEventListener("click", function(){
+  descargar(datosFinales());
+  setStatus("statusEnvio", "Respaldo descargado. Entrégaselo a la profe si la red falla. 💾", "ok");
+});
+
+document.getElementById("btnEnviar").addEventListener("click", function(){
+  var d = datosFinales();
+  var btn = this;
+  if (!SCRIPT_URL){
+    descargar(d);
+    setStatus("statusEnvio", "Se descargó tu respaldo. Entrégaselo a la profe. 💾", "ok");
+    return;
+  }
+  btn.disabled = true;
+  setStatus("statusEnvio", "Enviando… 📡", "");
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: {"Content-Type": "text/plain;charset=utf-8"},
+    body: JSON.stringify(d)
+  }).then(function(r){ return r.json().catch(function(){ return {ok:true}; }); })
+    .then(function(res){
+      if (res && res.ok === false){ throw new Error(res.error || "error"); }
+      pantalla("listo");
+      try { localStorage.removeItem(CLAVE_STATE); } catch(e){}
+    })
+    .catch(function(){
+      btn.disabled = false;
+      descargar(d);
+      setStatus("statusEnvio", "No se pudo enviar (revisa la red). Se descargó un respaldo: entrégaselo a la profe.", "bad");
+    });
+});
+
+document.getElementById("btnRepetir").addEventListener("click", function(){
+  estado = { v:1, nombre:estado.nombre, grupo:estado.grupo, idx:0, respuestas:[] };
+  guardar();
+  pantalla("pregunta");
+  renderPregunta(0);
+});
+
+document.getElementById("btnCerrar").addEventListener("click", function(){
+  window.close();
+});
+
+// ====== Continuar partida guardada ======
+(function(){
+  var previo = cargar();
+  if (previo && previo.respuestas && previo.respuestas.length > 0){
+    var has = false;
+    for (var i = 0; i < previo.respuestas.length; i++){ if (previo.respuestas[i]){ has = true; break; } }
+    if (has){
+      if (confirm("¡Hola de nuevo " + previo.nombre + "! Tienes una misión sin terminar. ¿Quieres continuar?")){
+        estado = previo;
+        pantalla("pregunta");
+        renderPregunta(Math.min(estado.idx, PREGUNTAS.length - 1));
+      } else {
+        try { localStorage.removeItem(CLAVE_STATE); } catch(e){}
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>
