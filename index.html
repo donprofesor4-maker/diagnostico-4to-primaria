@@ -346,7 +346,7 @@ function renderPregunta(idx){
     div.className = "opcion";
     div.innerHTML = '<input type="radio" name="q' + p.id + '" value="' + letra + '"' + (eleccion === letra ? ' checked' : '') + '>' +
       '<div class="letra">' + letra.toUpperCase() + '</div>' +
-      '<div class="texto">' + p.o[i] + "</div>";
+      '<div class="texto">' + p.o[i].replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + "</div>";
     caja.appendChild(div);
   }
   var inputs = caja.querySelectorAll("input");
