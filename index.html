@@ -254,7 +254,7 @@ var LETRAS = ["a","b","c"];
 // Evita que los alumnos detecten el patrón "la respuesta siempre es A".
 // La mezcla se guarda en la partida (localStorage) para que al continuar una
 // misión a medio hacer las letras sigan coincidiendo con lo que se vio.
-var CORRECTAS = PREGUNTAS.map(function(p){ return p.o[0]; });
+var CORRECTAS = PREGUNTAS.map(function(p){ return p.o[LETRAS.indexOf(p.c)]; });
 
 function mezclarPreguntas(){
   for (var i = 0; i < PREGUNTAS.length; i++){
